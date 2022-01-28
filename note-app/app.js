@@ -1,11 +1,34 @@
-import chalk from 'chalk';
-import { Human, getNotes } from './notes.js';
-const log = console.log;
+import { Notes } from './notes.js';
+import readline from 'readline';
 
-let Patrycjusz = new Human('Patrycjusz');
+const oNotes = new Notes();
+const rl = readline.Interface({
+    input: process.stdin,
+    output: process.stdout,
+    terminal: true
+});
 
-log(chalk.red('Hello World!!!'));
-log('');
-log(Patrycjusz.sayHello());
-log('');
-log(chalk.green(getNotes()));
+rl.on('line', function(line) {
+
+    switch (rl.history[0]) {
+        case 'add':
+            oNotes.add();
+            break;
+        case 'remove':
+            oNotes.remove();
+            break;
+        case 'clear':
+            oNotes.clear();
+            break;
+        case 'list':
+            oNotes.list();
+            break;
+        case 'help':
+            oNotes.help();
+            break;
+        case 'exit':
+            rl.close();
+            break;
+    }
+
+})
