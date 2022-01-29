@@ -1,32 +1,36 @@
 import chalk from 'chalk';
 import fs from 'fs';
 
-function pause(time) {
-    let dt = new Date();
-    while (new Date()) - dt <= time;
-}
 export class Notes {
 
     constructor() {
 
         do {
-            try {
-                this.notesRaw = fs.readFileSync('notes.json');
-            } catch {
-                fs.writeFileSync('notes.json', '{}');
+            if (!this.notesRaw) {
+                console.log('get the file data');
+                try {
+                    this.notesRaw = fs.readFileSync('notes.json');
+                } catch {
+                    fs.writeFileSync('notes.json', '{}');
+                    this.notesRaw = fs.readFileSync('notes.json');
+                }
             }
 
             try {
+                console.log('convert file data to json');
                 this.notesJson = JSON.parse(this.notesRaw);
             } catch {
                 fs.writeFileSync('notes.json', '{}');
+                this.notesJson = JSON.parse(this.notesRaw);
                 console.log(chalk.red('Database was corrupted. I\'ve created fresh database.'));
             }
         }
         while (this.notesJson == undefined)
-        this.lastId = this.notesJson[Object.keys(this.notesJson).pop()]["id"];
+        this.lastId = this.notesJson["note-1"] == undefined ? 0 : this.notesJson[Object.keys(this.notesJson).pop()]["id"];
     }
 
+    //METHODS
+    //------------------------------------------------
     add(note) {
         this.lastId++;
         this.notesJson["note-" + this.lastId] = {
@@ -40,20 +44,51 @@ export class Notes {
             console.clear();
         }, 2000);
     }
+
+    //------------------------------------------------
     remove(noteId) {
-        delete this.notesJson["note-" + noteId];
-        fs.writeFileSync('notes.json', JSON.stringify(this.notesJson, null, 4));
-        console.log(this.notesJson);
+        if (Object.keys(this.notesJson).length > 0) {
+            delete this.notesJson["note-" + noteId];
+            fs.writeFileSync('notes.json', JSON.stringify(this.notesJson, null, 4));
+        }
+        else {
+            console.log(chalk.yellow('There nothing left to remove.'))
+        }
     }
+
+    //------------------------------------------------
     clear() {
-        console.log('cleaning all notes')
+        fs.writeFileSync('notes.json', '{}');
+        this.notesJson = {};
+        console.clear();
+        console.log(chalk.green('Cleared all notes.'));
     }
+
+    //------------------------------------------------
     list() {
-        console.log('listing all notes')
+        console.clear();
+        let i = 1;
+        console.log(chalk.cyan("all your notes:"));
+        console.log(`nr.  #ID  Example note content`);
+        for (let key in this.notesJson) {
+            if (key) {
+                console.log(`${i}.  #${this.notesJson[key]["id"]}  ${this.notesJson[key]["note"]}`);
+            }
+            i++;
+        }
+        if (Object.keys(this.notesJson).length == 0) {
+            console.log(chalk.yellow('There are any notes here.'));
+        }
+        console.log('................................................................')
+        console.log();
     }
+
+    //------------------------------------------------
     stats() {
         console.log('show how many notes have been created since the beginning')
     }
+
+    //------------------------------------------------
     help() {
         console.log('.............................................................')
         console.log('Type one of blue listed commands to perform desirable action:');
@@ -72,5 +107,13 @@ export class Notes {
         console.log(`${chalk.cyan('help')} to see this help recursion(recursion) ;-)`);
         console.log('................................................................')
         console.log();
+    }
+    isNote() {
+        if (Object.keys(this.notesJson).length > 0) {
+            return true;
+        }
+        else {
+            return false;
+        }
     }
 }
