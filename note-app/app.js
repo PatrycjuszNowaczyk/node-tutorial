@@ -8,8 +8,8 @@ const rl = readline.Interface({
     terminal: true
 });
 
+console.clear();
 oNotes.help();
-
 rl.on('line', function (line) {
     switch (rl.history[0]) {
         case 'add':

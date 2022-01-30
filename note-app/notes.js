@@ -78,7 +78,6 @@ export class Notes {
             console.log(chalk.yellow('There are any notes here.'));
         }
         console.log('................................................................');
-        console.log();
     }
 
     //------------------------------------------------
