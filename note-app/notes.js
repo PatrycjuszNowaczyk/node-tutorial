@@ -11,7 +11,7 @@ export class Notes {
                 try {
                     this.notesRaw = fs.readFileSync('notes.json');
                 } catch {
-                    fs.writeFileSync('notes.json', '{}');
+                    fs.writeFileSync('notes.json', '{ "lastId": 0 }');
                     this.notesRaw = fs.readFileSync('notes.json');
                 }
             }
@@ -20,21 +20,20 @@ export class Notes {
                 console.log('convert file data to json');
                 this.notesJson = JSON.parse(this.notesRaw);
             } catch {
-                fs.writeFileSync('notes.json', '{}');
-                this.notesJson = JSON.parse(this.notesRaw);
+                this.notesJson = { "lastId": 0 };
+                fs.writeFileSync('notes.json', JSON.stringify(this.notesJson));
                 console.log(chalk.red('Database was corrupted. I\'ve created fresh database.'));
             }
         }
         while (this.notesJson == undefined)
-        this.lastId = this.notesJson["note-1"] == undefined ? 0 : this.notesJson[Object.keys(this.notesJson).pop()]["id"];
     }
 
     //METHODS
     //------------------------------------------------
     add(note) {
-        this.lastId++;
-        this.notesJson["note-" + this.lastId] = {
-            "id": this.lastId,
+        this.notesJson.lastId++;
+        this.notesJson["note-" + this.notesJson.lastId] = {
+            "id": this.notesJson.lastId,
             "note": note
         };
         fs.writeFileSync('notes.json', JSON.stringify(this.notesJson, null, 4));
@@ -50,8 +49,7 @@ export class Notes {
         if (Object.keys(this.notesJson).length > 0) {
             delete this.notesJson["note-" + noteId];
             fs.writeFileSync('notes.json', JSON.stringify(this.notesJson, null, 4));
-        }
-        else {
+        } else {
             console.log(chalk.yellow('There nothing left to remove.'))
         }
     }
@@ -61,7 +59,7 @@ export class Notes {
         fs.writeFileSync('notes.json', '{}');
         this.notesJson = {};
         console.clear();
-        console.log(chalk.green('Cleared all notes.'));
+        console.log(chalk.green('Success. Cleared all notes.'));
     }
 
     //------------------------------------------------
@@ -71,15 +69,15 @@ export class Notes {
         console.log(chalk.cyan("all your notes:"));
         console.log(`nr.  #ID  Example note content`);
         for (let key in this.notesJson) {
-            if (key) {
+            if (key.split('-')[0] == "note") {
                 console.log(`${i}.  #${this.notesJson[key]["id"]}  ${this.notesJson[key]["note"]}`);
+                i++;
             }
-            i++;
         }
-        if (Object.keys(this.notesJson).length == 0) {
+        if (Object.keys(this.notesJson).length == 1) {
             console.log(chalk.yellow('There are any notes here.'));
         }
-        console.log('................................................................')
+        console.log('................................................................');
         console.log();
     }
 
@@ -108,11 +106,12 @@ export class Notes {
         console.log('................................................................')
         console.log();
     }
+
+    //------------------------------------------------
     isNote() {
         if (Object.keys(this.notesJson).length > 0) {
             return true;
-        }
-        else {
+        } else {
             return false;
         }
     }
